@@ -85,6 +85,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
      */
 
     // Initialize thermal component
+    #pragma omp for schedule(dynamic, (end-start)/4)
     for (int i = start; i <= end; i++) {
         spec->part[i].ux = spec -> uth[0] * rand_norm();
         spec->part[i].uy = spec -> uth[1] * rand_norm();
@@ -100,6 +101,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
     memset(npc, 0, (spec->nx) * sizeof(int) );
 
     // Accumulate momentum in each cell
+    #pragma omp for schedule(dynamic, (end-start)/4)
     for (int i = start; i <= end; i++) {
         const int idx  = spec -> part[i].ix;
 
@@ -112,6 +114,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
 
     // Normalize to the number of particles in each cell to get the
     // average momentum in each cell
+    #pragma omp for schedule(dynamic, (spec->nx)/4)
     for(int i =0; i< spec->nx; i++ ) {
         const float norm = (npc[ i ] > 0) ? 1.0f/npc[i] : 0;
 
@@ -121,6 +124,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
     }
 
     // Subtract average momentum and add fluid component
+    #pragma omp for schedule(dynamic, (end - start)/4)
     for (int i = start; i <= end; i++) {
         const int idx  = spec -> part[i].ix;
 
@@ -242,7 +246,7 @@ int spec_np_inj( t_species* spec, const int range[] )
 }
 
 /**
- * @brief Sets initial position of particles according to density profile
+ * @brief Sets initia   l position of particles according to density profile
  * 
  * @param spec      Particle species
  * @param range     Range of cells in which to inject
@@ -258,6 +262,7 @@ void spec_set_x( t_species* spec, const int range[] )
 
     float poscell[npc];
 
+    #pragma omp for schedule(dynamic, npc/4)
     for (i=0; i<spec->ppc; i++) {
         poscell[i]   = ( i + 0.5 ) / npc;
     }
@@ -270,7 +275,7 @@ void spec_set_x( t_species* spec, const int range[] )
 
         // Get edge position normalized to cell size;
         start = spec -> density.start / spec -> dx - spec -> n_move;
-
+    
         for (i = range[0]; i <= range[1]; i++) {
 
             for (k=0; k<npc; k++) {
@@ -389,6 +394,7 @@ void spec_set_x( t_species* spec, const int range[] )
 
             double Rs;
 
+            //o ip não é resetado, não vale a pena alterar esse while, nem o de dentro
             while( ix <= range[1] ){
 
                 // Get density on the edges of current cell
@@ -478,10 +484,10 @@ void spec_inject_particles( t_species* spec, const int range[] )
     int start = spec -> np;
 
     // Get maximum number of particles to inject
-    int np_inj = spec_np_inj( spec, range );
+    int np_inj = spec_np_inj( spec, range ); //não altera o spec
 
     // Check if buffer is large enough and if not reallocate
-    spec_grow_buffer( spec, spec -> np + np_inj );
+    spec_grow_buffer( spec, spec -> np + np_inj ); //altera o spec
 
     // Set particle positions
     spec_set_x( spec, range );
@@ -598,6 +604,7 @@ void spec_move_window( t_species *spec ){
         // shift all particles left
         // particles leaving the box will be removed later
         int i;
+        #pragma omp parallel for 
         for( i = 0; i < spec->np; i++ ) {
             spec->part[i].ix--;
         }
@@ -768,7 +775,7 @@ void dep_current_zamb( int ix0, int di,
 
         S1x[0] = 1.0f - vp[k].x1;
         S1x[1] = vp[k].x1;
-
+        #pragma omp critical
         J[ vp[k].ix     ].x += qnx * vp[k].dx;
         J[ vp[k].ix     ].y += vp[k].qvy * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
         J[ vp[k].ix + 1 ].y += vp[k].qvy * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
@@ -878,7 +885,7 @@ void interpolate_fld( const float3* restrict const E, const float3* restrict con
     Ep->x = E[ih].x * (1.0f - w1h) + E[ih+1].x * w1h;
     Ep->y = E[i ].y * (1.0f -  w1) + E[i+1 ].y * w1;
     Ep->z = E[i ].z * (1.0f -  w1) + E[i+1 ].z * w1;
-
+    
     Bp->x = B[i ].x * (1.0f  - w1) + B[i+1 ].x * w1;
     Bp->y = B[ih].y * (1.0f - w1h) + B[ih+1].y * w1h;
     Bp->z = B[ih].z * (1.0f - w1h) + B[ih+1].z * w1h;
@@ -933,6 +940,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
     double energy = 0;
 
     // Advance particles
+    #pragma omp parallel for reduction(+:energy)
     for (int i=0; i<spec->np; i++) {
 
         float3 Ep, Bp;
@@ -1047,17 +1055,17 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
         if (spec -> moving_window )	spec_move_window( spec );
 
         // Use absorbing boundaries along x
-        int i = 0;
-        while ( i < spec -> np ) {
+        #pragma omp parallel for
+        for(int i = 0; i < spec -> np;i++) {
             if (( spec -> part[i].ix < 0 ) || ( spec -> part[i].ix >= nx0 )) {
                 spec -> part[i] = spec -> part[ -- spec -> np ];
                 continue;
             }
-            i++;
         }
 
     } else {
         // Use periodic boundaries in x
+        #pragma omp parallel for
         for (int i=0; i<spec->np; i++) {
             spec -> part[i].ix += (( spec -> part[i].ix < 0 ) ? nx0 : 0 ) - (( spec -> part[i].ix >= nx0 ) ? nx0 : 0);
         }

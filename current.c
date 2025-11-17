@@ -269,6 +269,26 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
     float3 fl = J[-1];
     float3 f0 = J[ 0];
 
+    // o atual utiliza o anterior e o primeiro utiliza o ultimo
+    // em 8 threads se forem 80 instruções
+    // 
+    // std::thread(threadx)
+    // std::thread(thready)
+    // std::thread(threadz)
+    //
+    //
+    // podemos alterar um while para for?
+    // particles 393
+    //
+    //
+    //
+    //        
+    // talvez fazer o for que lê os 3 e separar por if
+    // 
+    // 
+
+
+    #pragma omp critical
     for( int i = 0; i < current -> nx; i++) {
 
         float3 fu = J[i + 1];
