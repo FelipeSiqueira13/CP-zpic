@@ -266,8 +266,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
 
-    float3 fl = J[-1];
-    float3 f0 = J[ 0];
+
 
     // o atual utiliza o anterior e o primeiro utiliza o ultimo
     // em 8 threads se forem 80 instruções
@@ -286,12 +285,18 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
     // talvez fazer o for que lê os 3 e separar por if
     // 
     // 
+    float3 JCopy[current -> nx];
+    #pragma omp parallel for
+    for(int i = 0; i < current -> nx; i++) {
+        JCopy[i] = J[i];
+    }
 
-
-    #pragma omp critical
+    #pragma omp parallel for
     for( int i = 0; i < current -> nx; i++) {
 
-        float3 fu = J[i + 1];
+        float3 fu = JCopy[i + 1];
+        float3 f0 = JCopy[ i     ];
+        float3 fl = JCopy[ i - 1 ];
 
         float3 fs;
 
@@ -300,9 +305,6 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
         fs.z = sa * fl.z + sb * f0.z + sa * fu.z;
 
         J[i] = fs;
-
-        fl = f0;
-        f0 = fu;
 
     }
 

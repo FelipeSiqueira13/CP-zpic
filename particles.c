@@ -85,7 +85,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
      */
 
     // Initialize thermal component
-    #pragma omp for schedule(dynamic, (end-start)/4)
+    #pragma omp parallel for 
     for (int i = start; i <= end; i++) {
         spec->part[i].ux = spec -> uth[0] * rand_norm();
         spec->part[i].uy = spec -> uth[1] * rand_norm();
@@ -101,7 +101,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
     memset(npc, 0, (spec->nx) * sizeof(int) );
 
     // Accumulate momentum in each cell
-    #pragma omp for schedule(dynamic, (end-start)/4)
+    #pragma omp parallel for 
     for (int i = start; i <= end; i++) {
         const int idx  = spec -> part[i].ix;
 
@@ -114,7 +114,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
 
     // Normalize to the number of particles in each cell to get the
     // average momentum in each cell
-    #pragma omp for schedule(dynamic, (spec->nx)/4)
+    #pragma omp parallel for 
     for(int i =0; i< spec->nx; i++ ) {
         const float norm = (npc[ i ] > 0) ? 1.0f/npc[i] : 0;
 
@@ -124,7 +124,7 @@ void spec_set_u( t_species* spec, const int start, const int end )
     }
 
     // Subtract average momentum and add fluid component
-    #pragma omp for schedule(dynamic, (end - start)/4)
+    #pragma omp parallel for 
     for (int i = start; i <= end; i++) {
         const int idx  = spec -> part[i].ix;
 
@@ -262,7 +262,7 @@ void spec_set_x( t_species* spec, const int range[] )
 
     float poscell[npc];
 
-    #pragma omp for schedule(dynamic, npc/4)
+    #pragma omp parallel for 
     for (i=0; i<spec->ppc; i++) {
         poscell[i]   = ( i + 0.5 ) / npc;
     }
@@ -778,8 +778,8 @@ void dep_current_zamb( int ix0, int di,
         #pragma omp critical
         J[ vp[k].ix     ].x += qnx * vp[k].dx;
         J[ vp[k].ix     ].y += vp[k].qvy * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
-        J[ vp[k].ix + 1 ].y += vp[k].qvy * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
         J[ vp[k].ix     ].z += vp[k].qvz * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
+        J[ vp[k].ix + 1 ].y += vp[k].qvy * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
         J[ vp[k].ix  +1 ].z += vp[k].qvz * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
     }
 
@@ -892,18 +892,7 @@ void interpolate_fld( const float3* restrict const E, const float3* restrict con
 
 }
 
-/**
- * @brief Returns number of cells moved
- * 
- * Note that the particle will move at most 1 cell in either direction
- * 
- * @param x         End particle position, normalized to cell size
- * @return ltrim    Number of cells moved, {-1,0,1}
- */
-int ltrim( float x )
-{
-    return ( x >= 1.0f ) - ( x < 0.0f );
-}
+
 
 /**
  * @brief Advance Particle species 1 timestep
@@ -1018,7 +1007,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
 
         x1 = spec -> part[i].x + dx;
 
-        di = ltrim(x1);
+        di = ( x1 >= 1.0f ) - ( x1 < 0.0f );
 
         x1 -= di;
 
