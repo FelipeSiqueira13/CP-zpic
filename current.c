@@ -285,7 +285,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
     // talvez fazer o for que lê os 3 e separar por if
     // 
     // 
-    float3 JCopy[current -> nx];
+    float3 *JCopy = malloc(sizeof(float3) * current->nx);
     #pragma omp parallel for
     for(int i = 0; i < current -> nx; i++) {
         JCopy[i] = J[i];
@@ -307,6 +307,8 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
         J[i] = fs;
 
     }
+
+    free(JCopy);
 
     // Update x boundaries for periodic boundaries
     if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
