@@ -1043,7 +1043,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
         for(int i = 0; i < spec -> np;i++) {
             if (( spec -> part[i].ix < 0 ) || ( spec -> part[i].ix >= nx0 )) {
                 spec -> part[i] = spec -> part[ -- spec -> np ];
-                continue;
+                i--;
             }
         }
 
