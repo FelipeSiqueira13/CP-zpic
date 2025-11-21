@@ -1,6 +1,6 @@
 # GCC options
 CC = gcc
-CFLAGS = -Ofast -g -std=c99 -pedantic -Wall -fopenmp
+CFLAGS = -Ofast -g -std=c99 -pedantic -Wall -fopenmp -march=native
 #CFLAGS = -Kfast -std=c99 
 LDFLAGS = -lm
 
