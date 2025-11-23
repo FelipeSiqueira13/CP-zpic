@@ -938,7 +938,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
     double energy = 0;
 
     // Advance particles
-    #pragma omp parallel for reduction(+:energy)
+    #pragma omp parallel for schedule(guided) reduction(+:energy)
     for (int i=0; i<spec->np; i++) {
 
         float3 Ep, Bp;
