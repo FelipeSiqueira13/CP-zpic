@@ -45,3 +45,8 @@ clean:
 	@touch $(TARGET) $(OBJ)
 	rm -f $(TARGET) $(OBJ)
 	rm -rf $(DOCSBASE)
+
+export OMP_NUM_THREADS=14
+
+run : all
+		./zpic
