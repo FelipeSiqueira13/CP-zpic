@@ -779,17 +779,12 @@ void dep_current_zamb( int ix0, int di,
 
         S1x[0] = 1.0f - vp[k].x1;
         S1x[1] = vp[k].x1;
-        #pragma omp critical
-        {        
-            J[ vp[k].ix     ].x += qnx * vp[k].dx;
-            J[ vp[k].ix     ].y += vp[k].qvy * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
-            J[ vp[k].ix     ].z += vp[k].qvz * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
-        }
-        #pragma omp critical
-        {
-            J[ vp[k].ix + 1 ].y += vp[k].qvy * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
-            J[ vp[k].ix  +1 ].z += vp[k].qvz * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
-        }
+
+        J[ vp[k].ix     ].x += qnx * vp[k].dx;
+        J[ vp[k].ix     ].y += vp[k].qvy * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
+        J[ vp[k].ix     ].z += vp[k].qvz * (S0x[0]+S1x[0]+(S0x[0]-S1x[0])/2.0f);
+        J[ vp[k].ix + 1 ].y += vp[k].qvy * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
+        J[ vp[k].ix  +1 ].z += vp[k].qvz * (S0x[1]+S1x[1]+(S0x[1]-S1x[1])/2.0f);
     }
 
 }
@@ -1056,7 +1051,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
             if (spec -> moving_window )	spec_move_window( spec );
             
             // Use absorbing boundaries along x
-            #pragma omp parallel for
+            #pragma omp for
             for(int i = 0; i < spec -> np;i++) {
                 if (( spec -> part[i].ix < 0 ) || ( spec -> part[i].ix >= nx0 )) {
                     spec -> part[i] = spec -> part[ -- spec -> np ];
@@ -1066,7 +1061,7 @@ void spec_advance( t_species* spec, t_emf* emf, t_current* current )
             
         } else {
             // Use periodic boundaries in x
-            #pragma omp parallel for
+            #pragma omp for
             for (int i=0; i<spec->np; i++) {
                 spec -> part[i].ix += (( spec -> part[i].ix < 0 ) ? nx0 : 0 ) - (( spec -> part[i].ix >= nx0 ) ? nx0 : 0);
             }
