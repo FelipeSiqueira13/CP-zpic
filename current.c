@@ -266,25 +266,6 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
 
-
-
-    // o atual utiliza o anterior e o primeiro utiliza o ultimo
-    // em 8 threads se forem 80 instruções
-    // 
-    // std::thread(threadx)
-    // std::thread(thready)
-    // std::thread(threadz)
-    //
-    //
-    // podemos alterar um while para for?
-    // particles 393
-    //
-    //
-    //
-    //        
-    // talvez fazer o for que lê os 3 e separar por if
-    // 
-    // 
     float3 *JCopy = malloc(sizeof(float3) * current->nx);
     #pragma omp parallel
     {
