@@ -278,11 +278,11 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
         #pragma omp for
         for (int i = 0; i < current->nx; i++) {
-            JCopy[i+1] = J[i];
+            JCopy[i] = J[i];
         }
     
         #pragma omp for
-        for( int i = 1; i < current -> nx; i++) {
+        for( int i = 0; i < current -> nx; i++) {
             
             float3 fu = JCopy[i + 1];
             float3 f0 = JCopy[ i     ];
@@ -309,7 +309,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
             for (int i=0; i<current->gc[1]; i++){
                 J[ current->nx + i ] = J[ i ];
             }
-        }
+    }
     
     free(JCopy);
 
