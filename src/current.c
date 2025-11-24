@@ -274,7 +274,6 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
 
-    float3 *JCopy = malloc(sizeof(float3) * (current->nx));
     #pragma omp parallel
 {
     int tid = omp_get_thread_num();
