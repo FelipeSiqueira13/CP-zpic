@@ -518,8 +518,8 @@ void emf_move_window( t_emf *emf ){
 		float3* const restrict E = emf -> E; 
 		float3* const restrict B = emf -> B; 
 		int nTot = 1 + emf->nx + emf->gc[1] - (-emf->gc[0]);
-        float3 *restrict ECopy = malloc(nTot * sizeof(float3));
-        float3 *restrict BCopy = malloc(nTot * sizeof(float3));
+        float3* ECopy = malloc(nTot * sizeof(float3));
+        float3* BCopy = malloc(nTot * sizeof(float3));
 		const float3 zero_fld = {0.,0.,0.}; 
 		// Shift data left 1 cell and zero rightmost cells 
 		#pragma omp parallel 
@@ -539,6 +539,7 @@ void emf_move_window( t_emf *emf ){
 				E[ i ] = zero_fld; 
 				B[ i ] = zero_fld; 
 			} 
+			#pragma omp barrier
 		} // Increase moving window counter 
 		emf -> n_move++; 
 		free(ECopy);

@@ -272,7 +272,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
         #pragma omp for
         for(int i = 0; i < current -> nx; i++) {
-        JCopy[i] = J[i];
+            JCopy[i] = J[i];
         }
     
         #pragma omp for
@@ -305,6 +305,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
                 J[ current->nx + i ] = J[ i ];
             }
         }
+        #pragma omp barrier
     }
     
     free(JCopy);
