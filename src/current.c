@@ -268,43 +268,52 @@ void get_smooth_comp( int n, float* sa, float* sb) {
  * @param sa kernel a value
  * @param sb kernel b value
  */
-void kernel_x(t_current *current, float sa, float sb)
-{
-    float3 *restrict JCopy = current->JCopy;
-    float3 *restrict J = current->J;
-    int nx = current->nx;
+void kernel_x( t_current* const current, const float sa, const float sb ){
 
-    #pragma omp parallel for
-    for (int i = 0; i < nx; i++) {
+    float3* restrict const J = current -> J;
 
-        float3 fL = JCopy[i - 1];
-        float3 f0 = JCopy[i];
-        float3 fR = JCopy[i + 1];
+    float3 *JCopy = malloc(sizeof(float3) * (current->nx));
+    #pragma omp parallel
+    {
 
-        float3 fs;
-        fs.x = sa * fL.x + sb * f0.x + sa * fR.x;
-        fs.y = sa * fL.y + sb * f0.y + sa * fR.y;
-        fs.z = sa * fL.z + sb * f0.z + sa * fR.z;
+        #pragma omp for
+        for (int i = 0; i < current->nx; i++) {
+            JCopy[i] = J[i];
+        }
+    
+        #pragma omp for
+        for( int i = 0; i < current -> nx; i++) {
+            
+            float3 fu = JCopy[i + 1];
+            float3 f0 = JCopy[ i     ];
+            float3 fl = JCopy[ i - 1 ];
+            
+            float3 fs;
+            
+            fs.x = sa * fl.x + sb * f0.x + sa * fu.x;
+            fs.y = sa * fl.y + sb * f0.y + sa * fu.y;
+            fs.z = sa * fl.z + sb * f0.z + sa * fu.z;
 
-        J[i] = fs;
+            J[i] = fs;
+            
+        }
     }
+        
+        
+        // Update x boundaries for periodic boundaries
+        if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
+            for(int i = -current->gc[0]; i<0; i++){
+                J[ i ] = J[ current->nx + i ];
+            }
 
-    // aplicar BC se for periódico
-    if (current->bc_type == CURRENT_BC_PERIODIC) {
-
-        for (int i = -current->gc[0]; i < 0; i++)
-            J[i] = J[nx + i];
-
-        for (int i = 0; i < current->gc[1]; i++)
-            J[nx + i] = J[i];
+            for (int i=0; i<current->gc[1]; i++){
+                J[ current->nx + i ] = J[ i ];
+            }
     }
+    
+    free(JCopy);
 
-    // swap dos buffers
-    float3 *tmp = current->JCopy;
-    current->JCopy = current->J;
-    current->J = tmp;
 }
-
 
 /**
  * @brief Applies digital filtering to the current density
