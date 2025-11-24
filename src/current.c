@@ -115,18 +115,24 @@ void current_update_gc( t_current *current )
         float3* restrict const J = current -> J;
         const int nx = current -> nx;
 
-        // lower - add the values from upper boundary ( both gc and inside box )
-        for (int i=-current->gc[0]; i<current->gc[1]; i++) {
-            J[ i ].x += J[ nx + i ].x;
-            J[ i ].y += J[ nx + i ].y;
-            J[ i ].z += J[ nx + i ].z;
-        }
-        
-        // upper - just copy the values from the lower boundary 
-        for (int i=-current->gc[0]; i<current->gc[1]; i++) {
-            J[ nx + i ].x = J[ i ].x;
-            J[ nx + i ].y = J[ i ].y;
-            J[ nx + i ].z = J[ i ].z;
+        #pragma omp parallel
+        {
+
+            // lower - add the values from upper boundary ( both gc and inside box )
+            #pragma omp for
+            for (int i=-current->gc[0]; i<current->gc[1]; i++) {
+                J[ i ].x += J[ nx + i ].x;
+                J[ i ].y += J[ nx + i ].y;
+                J[ i ].z += J[ nx + i ].z;
+            }
+            
+            // upper - just copy the values from the lower boundary 
+            #pragma omp for
+            for (int i=-current->gc[0]; i<current->gc[1]; i++) {
+                J[ nx + i ].x = J[ i ].x;
+                J[ nx + i ].y = J[ i ].y;
+                J[ nx + i ].z = J[ i ].z;
+            }
         }
     }
 }
@@ -272,7 +278,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
         #pragma omp for
         for(int i = 0; i < current -> nx; i++) {
-        JCopy[i] = J[i];
+            JCopy[i] = J[i];
         }
     
         #pragma omp for

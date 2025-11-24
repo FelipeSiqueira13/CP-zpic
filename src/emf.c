@@ -518,7 +518,6 @@ void emf_move_window(t_emf *emf) {
         float3 *restrict E = emf->E;
         float3 *restrict B = emf->B;
 
-        // criar buffers temporários
         int nTot = emf->nx + emf->gc[1] - (-emf->gc[0]);
         float3 *restrict Etmp = malloc(nTot * sizeof(float3));
         float3 *restrict Btmp = malloc(nTot * sizeof(float3));
@@ -528,7 +527,6 @@ void emf_move_window(t_emf *emf) {
 
         #pragma omp parallel
         {
-            // 1) copiar com shift
             #pragma omp for
             for (int i = i0; i < i1 - 1; i++) {
                 Etmp[i - i0] = E[i + 1];
@@ -537,19 +535,17 @@ void emf_move_window(t_emf *emf) {
 
             const float3 zero = (float3){0.,0.,0.};
 
-            // 2) zerar células finais
             #pragma omp for
             for (int i = emf->nx - 1; i < i1; i++) {
                 Etmp[i - i0] = zero;
                 Btmp[i - i0] = zero;
             }
-        }
 
-        // 3) copiar de volta (também paralelizável)
-        #pragma omp parallel for
-        for (int i = i0; i < i1; i++) {
-            E[i] = Etmp[i - i0];
-            B[i] = Btmp[i - i0];
+			#pragma omp for
+			for (int i = i0; i < i1; i++) {
+				E[i] = Etmp[i - i0];
+				B[i] = Btmp[i - i0];
+			}
         }
 
         free(Etmp);
