@@ -275,49 +275,48 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
     float3* restrict const J = current -> J;
 
     #pragma omp parallel
-{
-    int tid = omp_get_thread_num();
-    int nth = omp_get_num_threads();
+    {
+        int tid = omp_get_thread_num();
+        int nth = omp_get_num_threads();
 
-    int chunk = (current->nx + nth - 1) / nth;
-    int i0 = tid * chunk;
-    int i1 = MIN(i0 + chunk, current->nx);
+        int chunk = (current->nx + nth - 1) / nth;
+        int i0 = tid * chunk;
+        int i1 = MIN(i0 + chunk, current->nx);
 
-    float3 left  = (i0 > 0) ? J[i0-1] : J[0];
-    float3 curr  = J[i0];
-    float3 right;
+        float3 left  = (i0 > 0) ? J[i0-1] : J[0];
+        float3 curr  = J[i0];
+        float3 right;
 
-    for (int i = i0; i < i1; i++) {
+        for (int i = i0; i < i1; i++) {
 
-        if (i+1 < current->nx)
-            right = J[i+1];
-        else
-            right = J[current->nx - 1]; ;
+            if (i+1 < current->nx)
+                right = J[i+1];
+            else
+                right = J[current->nx - 1]; ;
 
-        float3 fs;
-        fs.x = sa * left.x + sb * curr.x + sa * right.x;
-        fs.y = sa * left.y + sb * curr.y + sa * right.y;
-        fs.z = sa * left.z + sb * curr.z + sa * right.z;
+            float3 fs;
+            fs.x = sa * left.x + sb * curr.x + sa * right.x;
+            fs.y = sa * left.y + sb * curr.y + sa * right.y;
+            fs.z = sa * left.z + sb * curr.z + sa * right.z;
 
-        J[i] = fs;
+            J[i] = fs;
 
-        // shift janela
-        left = curr;
-        curr = right;
+            left = curr;
+            curr = right;
+        }
     }
-}
 
         
         
-        // Update x boundaries for periodic boundaries
-        if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
-            for(int i = -current->gc[0]; i<0; i++){
-                J[ i ] = J[ current->nx + i ];
-            }
+    // Update x boundaries for periodic boundaries
+    if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
+        for(int i = -current->gc[0]; i<0; i++){
+            J[ i ] = J[ current->nx + i ];
+        }
 
-            for (int i=0; i<current->gc[1]; i++){
-                J[ current->nx + i ] = J[ i ];
-            }
+        for (int i=0; i<current->gc[1]; i++){
+            J[ current->nx + i ] = J[ i ];
+        }
     }
 
 }

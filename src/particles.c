@@ -266,7 +266,6 @@ void spec_set_x( t_species* spec, const int range[] )
 
     float poscell[npc];
 
-    #pragma omp parallel for 
     for (i=0; i<spec->ppc; i++) {
         poscell[i]   = ( i + 0.5 ) / npc;
     }
