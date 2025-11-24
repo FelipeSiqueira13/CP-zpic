@@ -265,6 +265,7 @@ void get_smooth_comp( int n, float* sa, float* sb) {
 void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
+
     float3 *JCopy = malloc(sizeof(float3) * current->nx);
     #pragma omp parallel
     {
