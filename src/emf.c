@@ -237,7 +237,6 @@ void emf_add_laser( t_emf* const emf, t_emf_laser* laser )
 
 	k = laser -> omega0;
 
-	#pragma omp parallel for
 	for (int i = 0; i < emf->nx; i++) {
 		z = i * dx;
 		z_2 = z + dx/2;
@@ -320,19 +319,16 @@ void emf_report( const t_emf *emf, const char field, const int fc )
 	float buf[ emf->nx ];
 	switch (fc) {
 		case 0:
-			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].x;
 			}
 			break;
 		case 1:
-			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].y;
 			}
 			break;
 		case 2:
-			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].z;
 			}
@@ -619,19 +615,18 @@ void emf_get_energy( const t_emf *emf, double energy[] )
     float3* const restrict E = emf -> E;
     float3* const restrict B = emf -> B;
 
-		for( i = 0; i<6; i++) energy[i] = 0;
-		
-		for( i = 0; i < emf -> nx; i ++ ) {
-			energy[0] += E[i].x * E[i].x;
-			energy[1] += E[i].y * E[i].y;
-			energy[2] += E[i].z * E[i].z;
-			energy[3] += B[i].x * B[i].x;
-			energy[4] += B[i].y * B[i].y;
-			energy[5] += B[i].z * B[i].z;
-		}
-		
-		for( i = 0; i<6; i++) energy[i] *= 0.5 * emf -> dx;
+	for( i = 0; i<6; i++) energy[i] = 0;
 
+	for( i = 0; i < emf -> nx; i ++ ) {
+		energy[0] += E[i].x * E[i].x;
+		energy[1] += E[i].y * E[i].y;
+		energy[2] += E[i].z * E[i].z;
+		energy[3] += B[i].x * B[i].x;
+		energy[4] += B[i].y * B[i].y;
+		energy[5] += B[i].z * B[i].z;
+	}
+
+	for( i = 0; i<6; i++) energy[i] *= 0.5 * emf -> dx;
 
 }
 
@@ -722,70 +717,64 @@ void emf_update_part_fld( t_emf* const emf ) {
     // Restrict pointers to E_part
     float3* const restrict E_part = emf->E_part;
 
-	#pragma omp parallel
-	{
-		switch (emf->ext_fld.E_type)
-		{
-		case EMF_FLD_TYPE_UNIFORM: {
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 e = emf -> E[i];
-				e.x += emf->ext_fld.E_0.x;
-				e.y += emf->ext_fld.E_0.y;
-				e.z += emf->ext_fld.E_0.z;
-				E_part[i] = e;
-			}
-			break; }
-		case EMF_FLD_TYPE_CUSTOM: {
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 ext_E = (*emf->ext_fld.E_custom)(i,emf->dx,emf->ext_fld.E_custom_data);
+    switch (emf->ext_fld.E_type)
+    {
+    case EMF_FLD_TYPE_UNIFORM: {
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 e = emf -> E[i];
+            e.x += emf->ext_fld.E_0.x;
+            e.y += emf->ext_fld.E_0.y;
+            e.z += emf->ext_fld.E_0.z;
+            E_part[i] = e;
+        }
+        break; }
+    case EMF_FLD_TYPE_CUSTOM: {
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 ext_E = (*emf->ext_fld.E_custom)(i,emf->dx,emf->ext_fld.E_custom_data);
 
-				float3 e = emf -> E[i];
-				e.x += ext_E.x;
-				e.y += ext_E.y;
-				e.z += ext_E.z;
-				E_part[i] = e;
-			}
-			break; }
-		case EMF_FLD_TYPE_NONE:
-			break;
-		}
+            float3 e = emf -> E[i];
+            e.x += ext_E.x;
+            e.y += ext_E.y;
+            e.z += ext_E.z;
+            E_part[i] = e;
+        }
+        break; }
+    case EMF_FLD_TYPE_NONE:
+        break;
+    }
 
-		// Restrict pointers to B_part
-		float3* const restrict B_part = emf->B_part;
+    // Restrict pointers to B_part
+    float3* const restrict B_part = emf->B_part;
 
-		switch (emf->ext_fld.B_type)
-		{
-		case EMF_FLD_TYPE_UNIFORM: {
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 b = emf -> B[i];
-				b.x += emf->ext_fld.B_0.x;
-				b.y += emf->ext_fld.B_0.y;
-				b.z += emf->ext_fld.B_0.z;
-				B_part[i] = b;
-			}
+    switch (emf->ext_fld.B_type)
+    {
+    case EMF_FLD_TYPE_UNIFORM: {
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 b = emf -> B[i];
+            b.x += emf->ext_fld.B_0.x;
+            b.y += emf->ext_fld.B_0.y;
+            b.z += emf->ext_fld.B_0.z;
+            B_part[i] = b;
+        }
 
-		}
-			break; 
-		case EMF_FLD_TYPE_CUSTOM: {
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 ext_B = (*emf->ext_fld.B_custom)(i,emf->dx,emf->ext_fld.B_custom_data);
+    }
+        break; 
+    case EMF_FLD_TYPE_CUSTOM: {
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 ext_B = (*emf->ext_fld.B_custom)(i,emf->dx,emf->ext_fld.B_custom_data);
 
-				float3 b = emf -> B[i];
-				b.x += ext_B.x;
-				b.y += ext_B.y;
-				b.z += ext_B.z;
-				B_part[i] = b;
-			}
-		}
-			break; 
-		case EMF_FLD_TYPE_NONE:
-			break;
-		}
-	}
+            float3 b = emf -> B[i];
+            b.x += ext_B.x;
+            b.y += ext_B.y;
+            b.z += ext_B.z;
+            B_part[i] = b;
+        }
+    }
+        break; 
+    case EMF_FLD_TYPE_NONE:
+        break;
+    }
+
 }
 
 /**
@@ -803,48 +792,42 @@ void emf_init_fld( t_emf* const emf, t_emf_init_fld* init_fld )
 
     float3* const restrict E = emf->E;
     float3* const restrict B = emf->B;
-	#pragma omp parallel
-	{
-		switch ( init_fld -> E_type ) {
-		case EMF_FLD_TYPE_NONE:
-			break;
 
-		case EMF_FLD_TYPE_UNIFORM:
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				E[ i ] = init_fld -> E_0;
-			}
-			break;
+    switch ( init_fld -> E_type ) {
+    case EMF_FLD_TYPE_NONE:
+        break;
 
-		case EMF_FLD_TYPE_CUSTOM:
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 init_E = (init_fld->E_custom)
-					(i,emf->dx, init_fld->E_custom_data);
-				E[ i ] = init_E;
-			}
-			break;
-		}    
+    case EMF_FLD_TYPE_UNIFORM:
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            E[ i ] = init_fld -> E_0;
+        }
+        break;
 
-		switch ( init_fld -> B_type ) {
-		case EMF_FLD_TYPE_NONE:
-			break;
+    case EMF_FLD_TYPE_CUSTOM:
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 init_E = (init_fld->E_custom)
+                (i,emf->dx, init_fld->E_custom_data);
+            E[ i ] = init_E;
+        }
+        break;
+    }    
 
-		case EMF_FLD_TYPE_UNIFORM:
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				B[ i ] = init_fld -> B_0;
-			}
-			break;
+    switch ( init_fld -> B_type ) {
+    case EMF_FLD_TYPE_NONE:
+        break;
 
-		case EMF_FLD_TYPE_CUSTOM:
-			#pragma omp for
-			for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
-				float3 init_B = (init_fld->B_custom)
-					(i,emf->dx, init_fld->B_custom_data);
-				B[ i ] = init_B;
-			}
-			break;
-		}
-	}
+    case EMF_FLD_TYPE_UNIFORM:
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            B[ i ] = init_fld -> B_0;
+        }
+        break;
+
+    case EMF_FLD_TYPE_CUSTOM:
+        for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
+            float3 init_B = (init_fld->B_custom)
+                (i,emf->dx, init_fld->B_custom_data);
+            B[ i ] = init_B;
+        }
+        break;
+    }
 }
