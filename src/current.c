@@ -319,8 +319,6 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
                 J[ current->nx + i ] = J[ i ];
             }
     }
-    
-    free(JCopy);
 
 }
 
