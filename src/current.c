@@ -274,30 +274,38 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3 *JCopy = malloc(sizeof(float3) * (current->nx));
     #pragma omp parallel
-    {
+{
+    int tid = omp_get_thread_num();
+    int nth = omp_get_num_threads();
 
-        #pragma omp for
-        for (int i = 0; i < current->nx; i++) {
-            JCopy[i] = J[i];
-        }
-    
-        #pragma omp for
-        for( int i = 0; i < current -> nx; i++) {
-            
-            float3 fu = JCopy[i + 1];
-            float3 f0 = JCopy[ i     ];
-            float3 fl = JCopy[ i - 1 ];
-            
-            float3 fs;
-            
-            fs.x = sa * fl.x + sb * f0.x + sa * fu.x;
-            fs.y = sa * fl.y + sb * f0.y + sa * fu.y;
-            fs.z = sa * fl.z + sb * f0.z + sa * fu.z;
+    int chunk = (current->nx + nth - 1) / nth;
+    int i0 = tid * chunk;
+    int i1 = min(i0 + chunk, current->nx);
 
-            J[i] = fs;
-            
-        }
+    float3 left  = (i0 > 0) ? J[i0-1] : J[0];
+    float3 curr  = J[i0];
+    float3 right;
+
+    for (int i = i0; i < i1; i++) {
+
+        if (i+1 < current->nx)
+            right = J[i+1];
+        else
+            right = J[current->nx - 1]; ;
+
+        float3 fs;
+        fs.x = sa * left.x + sb * curr.x + sa * right.x;
+        fs.y = sa * left.y + sb * curr.y + sa * right.y;
+        fs.z = sa * left.z + sb * curr.z + sa * right.z;
+
+        J[i] = fs;
+
+        // shift janela
+        left = curr;
+        curr = right;
     }
+}
+
         
         
         // Update x boundaries for periodic boundaries
