@@ -57,9 +57,10 @@ void sim_init( t_simulation* sim ){
 			.xtype = COMPENSATED,
 		.xlevel = 4
 		};
+		
+		sim_set_smooth( sim, &smooth );
 	}
 
-	sim_set_smooth( sim, &smooth );
 
 }
 
