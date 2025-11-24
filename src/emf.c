@@ -619,13 +619,8 @@ void emf_get_energy( const t_emf *emf, double energy[] )
     float3* const restrict E = emf -> E;
     float3* const restrict B = emf -> B;
 
-	#pragma omp parallel
-	{
-
-		#pragma omp for
 		for( i = 0; i<6; i++) energy[i] = 0;
 		
-		#pragma omp for
 		for( i = 0; i < emf -> nx; i ++ ) {
 			energy[0] += E[i].x * E[i].x;
 			energy[1] += E[i].y * E[i].y;
@@ -635,9 +630,8 @@ void emf_get_energy( const t_emf *emf, double energy[] )
 			energy[5] += B[i].z * B[i].z;
 		}
 		
-		#pragma omp for
 		for( i = 0; i<6; i++) energy[i] *= 0.5 * emf -> dx;
-	}
+
 
 }
 
