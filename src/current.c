@@ -18,6 +18,7 @@
 
 #include "zdf.h"
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 void current_smooth( t_current* const current );
 
@@ -281,7 +282,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     int chunk = (current->nx + nth - 1) / nth;
     int i0 = tid * chunk;
-    int i1 = min(i0 + chunk, current->nx);
+    int i1 = MIN(i0 + chunk, current->nx);
 
     float3 left  = (i0 > 0) ? J[i0-1] : J[0];
     float3 curr  = J[i0];
