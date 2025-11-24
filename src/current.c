@@ -272,17 +272,17 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
 
-    float3 *JCopy = malloc(sizeof(float3) * current->nx);
+    float3 *JCopy = malloc(sizeof(float3) * (current->nx));
     #pragma omp parallel
     {
 
-        #pragma omp for schedule(guided,4)
-        for(int i = 0; i < current -> nx; i++) {
-            JCopy[i] = J[i];
+        #pragma omp for
+        for (int i = 0; i < current->nx; i++) {
+            JCopy[i+1] = J[i];
         }
     
-        #pragma omp for schedule(guided,4)
-        for( int i = 0; i < current -> nx; i++) {
+        #pragma omp for
+        for( int i = 1; i < current -> nx; i++) {
             
             float3 fu = JCopy[i + 1];
             float3 f0 = JCopy[ i     ];
@@ -297,21 +297,19 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
             J[i] = fs;
             
         }
+    }
         
         
         // Update x boundaries for periodic boundaries
         if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
-            #pragma omp for
             for(int i = -current->gc[0]; i<0; i++){
                 J[ i ] = J[ current->nx + i ];
             }
 
-            #pragma omp for
             for (int i=0; i<current->gc[1]; i++){
                 J[ current->nx + i ] = J[ i ];
             }
         }
-    }
     
     free(JCopy);
 
