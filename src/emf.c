@@ -512,51 +512,36 @@ void emf_update_gc( t_emf *emf )
  * 
  * @param emf 
  */
-void emf_move_window(t_emf *emf) {
-    if ((emf->iter * emf->dt) > emf->dx * (emf->n_move + 1)) {
-
-        float3 *restrict E = emf->E;
-        float3 *restrict B = emf->B;
-
-        // criar buffers temporários
-        int nTot = emf->nx + emf->gc[1] - (-emf->gc[0]);
-        float3 *restrict Etmp = malloc(nTot * sizeof(float3));
-        float3 *restrict Btmp = malloc(nTot * sizeof(float3));
-
-        const int i0 = -emf->gc[0];
-        const int i1 = emf->nx + emf->gc[1];
-
-        #pragma omp parallel
-        {
-            // 1) copiar com shift
-            #pragma omp for
-            for (int i = i0; i < i1 - 1; i++) {
-                Etmp[i - i0] = E[i + 1];
-                Btmp[i - i0] = B[i + 1];
-            }
-
-            const float3 zero = (float3){0.,0.,0.};
-
-            // 2) zerar células finais
-            #pragma omp for
-            for (int i = emf->nx - 1; i < i1; i++) {
-                Etmp[i - i0] = zero;
-                Btmp[i - i0] = zero;
-            }
-			
-			// 3) copiar de volta (também paralelizável)
-			#pragma omp for
-			for (int i = i0; i < i1; i++) {
-				E[i] = Etmp[i - i0];
-				B[i] = Btmp[i - i0];
-			}
-		}
-
-        free(Etmp);
-        free(Btmp);
-
-        emf->n_move++;
-    }
+void emf_move_window( t_emf *emf ){
+	if ( ( emf -> iter * emf -> dt ) > emf->dx*( emf -> n_move + 1 ) ) 
+	{ 
+		float3* const restrict E = emf -> E; 
+		float3* const restrict B = emf -> B; 
+		int nTot = emf->nx + emf->gc[1] - (-emf->gc[0]);
+        float3 *restrict ECopy = malloc(nTot * sizeof(float3));
+        float3 *restrict BCopy = malloc(nTot * sizeof(float3));
+		const float3 zero_fld = {0.,0.,0.}; 
+		// Shift data left 1 cell and zero rightmost cells 
+		#pragma omp parallel 
+		{ 
+			#pragma omp for 
+			for (int i = -emf->gc[0]; i < emf->nx+emf->gc[1] - 1; i++) { 
+				ECopy[ i ] = E[ i ]; 
+				BCopy[ i ] = B[ i ]; 
+			} 
+			#pragma omp for 
+			for (int i = -emf->gc[0]; i < emf->nx+emf->gc[1] - 1; i++) { 
+				E[ i ] = ECopy[ i + 1 ]; 
+				B[ i ] = BCopy[ i + 1 ]; 
+			} 
+			#pragma omp for 
+			for(int i = emf->nx - 1; i < emf->nx+emf->gc[1]; i ++) { 
+				E[ i ] = zero_fld; 
+				B[ i ] = zero_fld; 
+			} 
+		} // Increase moving window counter 
+		emf -> n_move++; 
+	} 
 }
 
 
