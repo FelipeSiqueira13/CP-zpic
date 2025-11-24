@@ -265,34 +265,31 @@ void get_smooth_comp( int n, float* sa, float* sb) {
 void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
-
-    float3 *JCopy = malloc(sizeof(float3) * (current->nx +1));
+    float3 *JCopy = malloc(sizeof(float3) * current->nx);
     #pragma omp parallel
     {
 
         #pragma omp for
-        for( int i = 0; i < current -> nx ; i++ ) {
-            JCopy[i] = J[i];
+        for(int i = 0; i < current -> nx; i++) {
+        JCopy[i] = J[i];
         }
     
         #pragma omp for
-        for (int i = 0; i < current->nx; i++) {
-
-            int ip = (i + 1 < current->nx) ? (i + 1) : i;
-            int im = (i - 1 >= 0) ? (i - 1) : i;      
-
-            float3 fu = JCopy[ip];
-            float3 f0 = JCopy[i];
-            float3 fl = JCopy[im];
-
+        for( int i = 0; i < current -> nx; i++) {
+            
+            float3 fu = JCopy[i + 1];
+            float3 f0 = JCopy[ i     ];
+            float3 fl = JCopy[ i - 1 ];
+            
             float3 fs;
+            
             fs.x = sa * fl.x + sb * f0.x + sa * fu.x;
             fs.y = sa * fl.y + sb * f0.y + sa * fu.y;
             fs.z = sa * fl.z + sb * f0.z + sa * fu.z;
 
             J[i] = fs;
+            
         }
-
         
         
         // Update x boundaries for periodic boundaries
