@@ -236,7 +236,7 @@ void emf_add_laser( t_emf* const emf, t_emf_laser* laser )
 	sin_pol = sin( laser -> polarization );
 
 	k = laser -> omega0;
-	#pragma omp for private(z,z_2,lenv,lenv_2)
+	#pragma omp parallel for private(z,z_2,lenv,lenv_2)
 	for (int i = 0; i < emf->nx; i++) {
 		z = i * dx;
 		z_2 = z + dx/2;

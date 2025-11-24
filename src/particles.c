@@ -1339,7 +1339,7 @@ void spec_deposit_pha( const t_species *spec, const int rep_type,
     const float rdx1 = pha_nx[0] / ( pha_range[0][1] - pha_range[0][0] );
     const float rdx2 = pha_nx[1] / ( pha_range[1][1] - pha_range[1][0] );
 
-    #pragma omp for
+    #pragma omp parallel for
     for ( int i = 0; i<spec->np; i+=BUF_SIZE ) {
         int np = ( i + BUF_SIZE > spec->np )? spec->np - i : BUF_SIZE;
 
