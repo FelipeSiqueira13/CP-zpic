@@ -525,7 +525,7 @@ void emf_move_window( t_emf *emf ){
 		#pragma omp parallel 
 		{ 
 			#pragma omp for 
-			for (int i = -emf->gc[0]; i < emf->nx+emf->gc[1] - 1; i++) { 
+			for (int i = -emf->gc[0]; i < emf->nx+emf->gc[1]; i++) { 
 				ECopy[ i ] = E[ i ]; 
 				BCopy[ i ] = B[ i ]; 
 			} 
@@ -541,6 +541,8 @@ void emf_move_window( t_emf *emf ){
 			} 
 		} // Increase moving window counter 
 		emf -> n_move++; 
+		free(ECopy);
+		free(BCopy);
 	} 
 }
 
