@@ -539,11 +539,11 @@ void emf_move_window( t_emf *emf ){
 				E[ i ] = zero_fld; 
 				B[ i ] = zero_fld; 
 			} 
-			#pragma omp barrier
+			
 		} // Increase moving window counter 
-		emf -> n_move++; 
 		free(ECopy);
 		free(BCopy);
+		emf -> n_move++; 
 	} 
 }
 
