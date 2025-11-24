@@ -237,6 +237,7 @@ void emf_add_laser( t_emf* const emf, t_emf_laser* laser )
 
 	k = laser -> omega0;
 
+	#pragma omp parallel for
 	for (int i = 0; i < emf->nx; i++) {
 		z = i * dx;
 		z_2 = z + dx/2;
@@ -319,16 +320,19 @@ void emf_report( const t_emf *emf, const char field, const int fc )
 	float buf[ emf->nx ];
 	switch (fc) {
 		case 0:
+			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].x;
 			}
 			break;
 		case 1:
+			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].y;
 			}
 			break;
 		case 2:
+			#pragma omp parallel for
 			for ( int i = 0; i < emf->nx; i++ ) {
 				buf[i] = f[i].z;
 			}
@@ -720,6 +724,7 @@ void emf_update_part_fld( t_emf* const emf ) {
     switch (emf->ext_fld.E_type)
     {
     case EMF_FLD_TYPE_UNIFORM: {
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 e = emf -> E[i];
             e.x += emf->ext_fld.E_0.x;
@@ -729,6 +734,7 @@ void emf_update_part_fld( t_emf* const emf ) {
         }
         break; }
     case EMF_FLD_TYPE_CUSTOM: {
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 ext_E = (*emf->ext_fld.E_custom)(i,emf->dx,emf->ext_fld.E_custom_data);
 
@@ -749,6 +755,7 @@ void emf_update_part_fld( t_emf* const emf ) {
     switch (emf->ext_fld.B_type)
     {
     case EMF_FLD_TYPE_UNIFORM: {
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 b = emf -> B[i];
             b.x += emf->ext_fld.B_0.x;
@@ -760,6 +767,7 @@ void emf_update_part_fld( t_emf* const emf ) {
     }
         break; 
     case EMF_FLD_TYPE_CUSTOM: {
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 ext_B = (*emf->ext_fld.B_custom)(i,emf->dx,emf->ext_fld.B_custom_data);
 
@@ -798,12 +806,14 @@ void emf_init_fld( t_emf* const emf, t_emf_init_fld* init_fld )
         break;
 
     case EMF_FLD_TYPE_UNIFORM:
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             E[ i ] = init_fld -> E_0;
         }
         break;
 
     case EMF_FLD_TYPE_CUSTOM:
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 init_E = (init_fld->E_custom)
                 (i,emf->dx, init_fld->E_custom_data);
@@ -817,12 +827,14 @@ void emf_init_fld( t_emf* const emf, t_emf_init_fld* init_fld )
         break;
 
     case EMF_FLD_TYPE_UNIFORM:
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             B[ i ] = init_fld -> B_0;
         }
         break;
 
     case EMF_FLD_TYPE_CUSTOM:
+		#pragma omp parallel for
         for (int i=-emf->gc[0]; i<emf->nx+emf->gc[1]; i++) {
             float3 init_B = (init_fld->B_custom)
                 (i,emf->dx, init_fld->B_custom_data);
