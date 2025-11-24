@@ -276,12 +276,12 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
     #pragma omp parallel
     {
 
-        #pragma omp for
+        #pragma omp for schedule(guided,4)
         for(int i = 0; i < current -> nx; i++) {
             JCopy[i] = J[i];
         }
     
-        #pragma omp for
+        #pragma omp for schedule(guided,4)
         for( int i = 0; i < current -> nx; i++) {
             
             float3 fu = JCopy[i + 1];
