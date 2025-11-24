@@ -18,7 +18,7 @@ LDFLAGS = -lm
 #LDFLAGS = -lm
 
 
-SOURCE = src/current.c src/emf.c src/particles.c src/random.c src/timer.c src/main.c src/simulation.c src/zdf.c
+SOURCE = current.c emf.c particles.c random.c timer.c main.c simulation.c zdf.c
 
 TARGET = zpic
 
@@ -28,21 +28,21 @@ DOCS = $(DOCSBASE)/html/index.html
 
 OBJ = $(SOURCE:.c=.o)
 
-
-all : $(TARGET)
+all : $(SOURCE) $(TARGET)
 
 docs : $(DOCS)
 
 $(TARGET) : $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
 
-src/%.o: src/%.c
+.c.o:
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(DOCS) : $(SOURCE)
 	@doxygen ./Doxyfile
 
 clean:
+	@touch $(TARGET) $(OBJ)
 	rm -f $(TARGET) $(OBJ)
 	rm -rf $(DOCSBASE)
 
