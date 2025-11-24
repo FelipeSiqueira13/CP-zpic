@@ -318,22 +318,6 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
 }
 
-
-        
-        
-    // Update x boundaries for periodic boundaries
-    if ( current -> bc_type == CURRENT_BC_PERIODIC ) {
-        for(int i = -current->gc[0]; i<0; i++){
-            J[ i ] = J[ current->nx + i ];
-        }
-
-        for (int i=0; i<current->gc[1]; i++){
-            J[ current->nx + i ] = J[ i ];
-        }
-    }
-
-}
-
 /**
  * @brief Applies digital filtering to the current density
  * 
