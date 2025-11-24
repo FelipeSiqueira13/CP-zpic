@@ -266,7 +266,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
 
     float3* restrict const J = current -> J;
 
-    float3 *JCopy = malloc(sizeof(float3) * (current->nx));
+    float3 *JCopy = malloc(sizeof(float3) * (current->nx +1));
     #pragma omp parallel
     {
 
@@ -279,7 +279,7 @@ void kernel_x( t_current* const current, const float sa, const float sb ){
         for (int i = 0; i < current->nx; i++) {
 
             int ip = (i + 1 < current->nx) ? (i + 1) : i;
-            int im = (i - 1 >= 0) ? (i - 1) : i;      
+            int im = (i - 1 > 0) ? (i - 1) : i;      
 
             float3 fu = JCopy[ip];
             float3 f0 = JCopy[i];
