@@ -18,7 +18,7 @@ LDFLAGS = -lm
 #LDFLAGS = -lm
 
 
-SOURCE = current.c emf.c particles.c random.c timer.c main.c simulation.c zdf.c
+SOURCE = src/current.c src/emf.c src/particles.c src/random.c src/timer.c src/main.c src/simulation.c src/zdf.c
 
 TARGET = zpic
 

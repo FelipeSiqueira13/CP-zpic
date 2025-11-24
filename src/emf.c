@@ -543,14 +543,14 @@ void emf_move_window(t_emf *emf) {
                 Etmp[i - i0] = zero;
                 Btmp[i - i0] = zero;
             }
-        }
-
-        // 3) copiar de volta (também paralelizável)
-        #pragma omp parallel for
-        for (int i = i0; i < i1; i++) {
-            E[i] = Etmp[i - i0];
-            B[i] = Btmp[i - i0];
-        }
+			
+			// 3) copiar de volta (também paralelizável)
+			#pragma omp for
+			for (int i = i0; i < i1; i++) {
+				E[i] = Etmp[i - i0];
+				B[i] = Btmp[i - i0];
+			}
+		}
 
         free(Etmp);
         free(Btmp);
