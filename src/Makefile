@@ -46,7 +46,7 @@ clean:
 	rm -f $(TARGET) $(OBJ)
 	rm -rf $(DOCSBASE)
 
-export OMP_NUM_THREADS ?= 14
+export OMP_NUM_THREADS ?= 20
 
 run: all
 	./zpic
