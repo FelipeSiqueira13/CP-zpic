@@ -1,6 +1,6 @@
 # GCC options
 CC = gcc
-CFLAGS = -Ofast -g -std=c99 -pedantic -Wall -fopenmp -march=native
+CFLAGS = -Ofast -g -std=c99 -Wall -fopenmp -pedantic -march=native -fno-omit-frame-pointer
 #CFLAGS = -Kfast -std=c99 
 LDFLAGS = -lm
 
@@ -28,6 +28,7 @@ DOCS = $(DOCSBASE)/html/index.html
 
 OBJ = $(SOURCE:.c=.o)
 
+
 all : $(TARGET)
 
 docs : $(DOCS)
@@ -45,7 +46,7 @@ clean:
 	rm -f $(TARGET) $(OBJ)
 	rm -rf $(DOCSBASE)
 
-export OMP_NUM_THREADS=14
+export OMP_NUM_THREADS ?= 14
 
-run : all
-		./zpic
+run: all
+	./zpic
