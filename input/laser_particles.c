@@ -34,27 +34,30 @@ void sim_init( t_simulation* sim ){
 	t_species* species = (t_species *) malloc( n_species * sizeof( t_species ));
 	spec_new( &species[0], "electrons", -1.0, ppc, NULL, NULL, nx, box, dt, &density );
 
-	// Initialize Simulation data
-	sim_new( sim, nx, box, dt, tmax, ndump, species, n_species );
+	#pragma omp parallel{
 
-	// Add laser pulse (this must come after sim_new)
-	t_emf_laser laser = {
-		.start = 17.0,
-		.fwhm  = 2.0,
-		.a0 = 2.0,
-		.omega0 = 10.0,
-		.polarization = M_PI_2
-    };
-	sim_add_laser( sim, &laser );
-
-	// Set moving window (this must come after sim_new)
-	sim_set_moving_window( sim );
-
-	// Set current smoothing (this must come after sim_new)
-	t_smooth smooth = {
-		.xtype = COMPENSATED,
+		// Initialize Simulation data
+		sim_new( sim, nx, box, dt, tmax, ndump, species, n_species );
+		
+		// Add laser pulse (this must come after sim_new)
+		t_emf_laser laser = {
+			.start = 17.0,
+			.fwhm  = 2.0,
+			.a0 = 2.0,
+			.omega0 = 10.0,
+			.polarization = M_PI_2
+		};
+		sim_add_laser( sim, &laser );
+		
+		// Set moving window (this must come after sim_new)
+		sim_set_moving_window( sim );
+		
+		// Set current smoothing (this must come after sim_new)
+		t_smooth smooth = {
+			.xtype = COMPENSATED,
 		.xlevel = 4
-	};
+		};
+	}
 
 	sim_set_smooth( sim, &smooth );
 

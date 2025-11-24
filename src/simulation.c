@@ -168,7 +168,7 @@ void sim_set_moving_window( t_simulation* sim ){
 	sim -> current.bc_type = CURRENT_BC_NONE;
 
 	// Set moving window flag for all species
-	#pragma omp parallel for
+	#pragma omp for
 	for(int i=0; i<sim -> n_species; i++)
 		sim -> species[i].moving_window = 1;
 }
