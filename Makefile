@@ -28,21 +28,20 @@ DOCS = $(DOCSBASE)/html/index.html
 
 OBJ = $(SOURCE:.c=.o)
 
-all : $(SOURCE) $(TARGET)
+all : $(TARGET)
 
 docs : $(DOCS)
 
 $(TARGET) : $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $@
 
-.c.o:
+src/%.o: src/%.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 $(DOCS) : $(SOURCE)
 	@doxygen ./Doxyfile
 
 clean:
-	@touch $(TARGET) $(OBJ)
 	rm -f $(TARGET) $(OBJ)
 	rm -rf $(DOCSBASE)
 
